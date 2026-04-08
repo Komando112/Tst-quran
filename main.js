@@ -163,6 +163,9 @@ async function loadFullSurahRead() {
     const s = surahsList.find(x => x.number === sn);
     if (!s) return;
 
+    // تحديث معلومات السورة
+    showFullSurahReadInfo(sn);
+
     const container = document.getElementById('fullReadContainer');
     if (!container) return;
     container.style.display = 'block';
@@ -249,7 +252,6 @@ function quickListenAyah(surah, ayah, el) {
 
 // ══════════════════════════════════════════════════════════════
 //  قسم السورة كاملة - استماع
-//  المصدر: everyayah.com — آية تلو آية بشكل متواصل
 // ══════════════════════════════════════════════════════════════
 
 function resetFullAudioPlayer() {
@@ -283,7 +285,7 @@ function resetFullAudioPlayer() {
 }
 
 /**
- * الدالة الرئيسية — تشغيل السورة كاملة آية تلو آية من everyayah.com
+ * الدالة الرئيسية — تشغيل السورة كاملة آية تلو آية
  */
 async function startFullSurahAudioWithList() {
     const sn = parseInt(document.getElementById('fullAudioSurahSelect')?.value);
@@ -294,6 +296,7 @@ async function startFullSurahAudioWithList() {
     fullSurahSelectedSurah = s;
     fullSurahReciter = document.getElementById('fullAudioReciterSelect')?.value || fullSurahReciter;
 
+    // أوقف أي تشغيل سابق
     resetFullAudioPlayer();
 
     const playerEl  = document.getElementById('fullAudioPlayer');
@@ -302,6 +305,7 @@ async function startFullSurahAudioWithList() {
     const recEl     = document.getElementById('fullAudioReciterName');
     const counterEl = document.getElementById('fullAudioCounter');
 
+    // ★ إظهار المشغّل فوراً
     if (playerEl) playerEl.style.display = 'block';
     if (listEl)   listEl.innerHTML = '<div style="text-align:center;padding:24px;"><div class="spinner" style="margin:0 auto 10px;"></div><div style="color:var(--muted);font-size:.88rem;">جاري تحميل سورة ' + s.name + '...</div></div>';
     if (nowEl)    nowEl.innerHTML  = 'جاري تحميل <span style="color:var(--gold-d);">' + s.name + '</span>...';
@@ -359,7 +363,6 @@ function playFullSurahAyah(idx) {
         if (btn) btn.innerHTML = '<i class="fas fa-play"></i>';
         const s = fullSurahSelectedSurah;
         showToast('انتهت تلاوة سورة ' + (s ? s.name : '') + ' 🌙', 'success');
-        // إعادة ضبط شريط التقدم
         const ayahPrg  = document.getElementById('fullAudioAyahProgress');
         const surahPrg = document.getElementById('fullAudioSurahProgress');
         if (ayahPrg)  ayahPrg.style.width  = '100%';
@@ -392,9 +395,11 @@ function playFullSurahAyah(idx) {
     // إنشاء عنصر الصوت
     if (fullSurahAudio) {
         fullSurahAudio.pause();
-        fullSurahAudio.onended  = null;
-        fullSurahAudio.onerror  = null;
-        fullSurahAudio.ontimeupdate = null;
+        fullSurahAudio.onended       = null;
+        fullSurahAudio.onerror       = null;
+        fullSurahAudio.ontimeupdate  = null;
+        fullSurahAudio.onplay        = null;
+        fullSurahAudio.onpause       = null;
     }
     fullSurahAudio = new Audio();
 
@@ -413,27 +418,25 @@ function playFullSurahAyah(idx) {
     });
 
     fullSurahAudio.addEventListener('ended', () => {
-        // انتقل للآية التالية تلقائياً
         playFullSurahAyah(idx + 1);
     });
 
     // معالجة الخطأ — جرّب المصدر البديل للقارئ
+    let errorAttempts = 0;
     fullSurahAudio.addEventListener('error', () => {
+        errorAttempts++;
         const reciter = QuranConfig.reciters[fullSurahReciter];
-        if (reciter && reciter.sources.length > 1) {
+        if (reciter && reciter.sources.length > 1 && errorAttempts === 1) {
             const altUrl = reciter.sources[1](
                 String(item.surah).padStart(3,'0'),
                 String(item.ayah).padStart(3,'0')
             );
-            if (fullSurahAudio && fullSurahAudio.src !== altUrl) {
-                fullSurahAudio.src = altUrl;
-                fullSurahAudio.play().catch(() => playFullSurahAyah(idx + 1));
-                return;
-            }
+            fullSurahAudio.src = altUrl;
+            fullSurahAudio.play().catch(() => setTimeout(() => playFullSurahAyah(idx + 1), 500));
+            return;
         }
-        // تخطي الآية إذا فشل كل المصادر
         console.warn('[FullAudio] تعذر تحميل الآية ' + item.ayah + '، تخطي...');
-        playFullSurahAyah(idx + 1);
+        setTimeout(() => playFullSurahAyah(idx + 1), 500);
     });
 
     fullSurahAudio.src = item.url;
@@ -464,13 +467,15 @@ function _onFullAudioTimeUpdate() {
 function _highlightFullAudioAyah(index) {
     document.querySelectorAll('.full-audio-ayah-item').forEach((el, i) => {
         el.classList.toggle('playing', i === index);
-        if (i === index) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (i === index) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     });
 }
 
 /** تبديل التشغيل/الإيقاف */
 function toggleFullSurahPlay() {
-    if (!fullSurahAudio) {
+    if (!fullSurahAudio || !fullSurahAudio.src) {
         // لم يبدأ التشغيل بعد — ابدأ
         startFullSurahAudioWithList();
         return;
@@ -486,12 +491,14 @@ function toggleFullSurahPlay() {
 function fullSurahPrev() {
     const idx = fullSurahCurrentAyahIdx - 1;
     if (idx >= 0) playFullSurahAyah(idx);
+    else showToast('هذه أول آية في السورة', 'info');
 }
 
 /** الآية التالية */
 function fullSurahNext() {
     const idx = fullSurahCurrentAyahIdx + 1;
     if (idx < fullSurahAyahList.length) playFullSurahAyah(idx);
+    else showToast('انتهت السورة', 'info');
 }
 
 /** البحث في الآية الحالية */
@@ -527,13 +534,8 @@ function seekToAyahIdx(index) {
     playFullSurahAyah(index);
 }
 
-// aliases للتوافق
-function jumpToFullAudioAyah(index) { seekToAyahIdx(index); }
-async function startFullSurahAudio() { await startFullSurahAudioWithList(); }
-async function loadFullSurahAudioList() { /* لا يلزم */ }
-
 // ══════════════════════════════════════════════════════════════
-//  الكود الأصلي — بدون تغيير
+//  الكود الأصلي — بحث عن آية
 // ══════════════════════════════════════════════════════════════
 
 function updateSurahInfo(n) {
@@ -986,15 +988,12 @@ window.previousAyah                = previousAyah;
 window.nextAyah                    = nextAyah;
 window.toggleLegend                = toggleLegend;
 window.loadFullSurahRead           = loadFullSurahRead;
-window.startFullSurahAudio         = startFullSurahAudio;
 window.startFullSurahAudioWithList = startFullSurahAudioWithList;
 window.toggleFullSurahPlay         = toggleFullSurahPlay;
 window.fullSurahPrev               = fullSurahPrev;
 window.fullSurahNext               = fullSurahNext;
 window.seekFullAudio               = seekFullAudio;
 window.seekToAyahIdx               = seekToAyahIdx;
-window.jumpToFullAudioAyah         = jumpToFullAudioAyah;
-window.loadFullSurahAudioList      = loadFullSurahAudioList;
 window.copyFullSurah               = copyFullSurah;
 window.shareFullSurah              = shareFullSurah;
 window.quickListenAyah             = quickListenAyah;
@@ -1002,3 +1001,5 @@ window.fmt                         = fmt;
 window.toAr                        = toAr;
 window.showFullSurahReadInfo       = showFullSurahReadInfo;
 window.showFullSurahAudioInfo      = showFullSurahAudioInfo;
+window.resetFullAudioPlayer        = resetFullAudioPlayer;
+window.playFullSurahAyah           = playFullSurahAyah;
