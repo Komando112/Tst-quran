@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #1f2937;
+  --primary: #06b6d4;
+  --secondary: #8b5cf6;
+  --accent: #f59e0b;
+  --muted: #6b7280;
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --radius: 0.5rem;
+
+  /* Semantic colors */
+  --bg-light: #f9fafb;
+  --bg-lighter: #f3f4f6;
+  --border-color: #e5e7eb;
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
+
+  /* Reciters colors */
+  --reciter-active: #06b6d4;
+  --reciter-hover: #06b6d4cc;
+
+  /* Quran text */
+  --quran-text-color: #1f2937;
+  --ayah-number: #8b5cf6;
+}
+
+html.dark {
+  --background: #1f2937;
+  --foreground: #f3f4f6;
+  --primary: #06b6d4;
+  --secondary: #a78bfa;
+  --accent: #f59e0b;
+  --muted: #9ca3af;
+  --bg-light: #374151;
+  --bg-lighter: #4b5563;
+  --border-color: #4b5563;
+  --text-muted: #9ca3af;
+  --text-light: #6b7280;
+  --quran-text-color: #f3f4f6;
+  --ayah-number: #a78bfa;
+}
+
+html.sepia {
+  --background: #f4ecd8;
+  --foreground: #3e2723;
+  --primary: #a0522d;
+  --secondary: #8b4513;
+  --accent: #d2691e;
+  --muted: #6d4c41;
+  --bg-light: #faf3ed;
+  --bg-lighter: #f5e6d3;
+  --border-color: #e0d5c8;
+  --text-muted: #8d6e63;
+  --text-light: #a1887f;
+  --quran-text-color: #3e2723;
+  --ayah-number: #8b4513;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Quran text styling */
+.quran-text {
+  font-family: 'Traditional Arabic', 'Simplified Arabic', 'Arial Unicode MS',
+    sans-serif;
+  line-height: 2.5;
+  font-size: 1.5rem;
+  text-align: right;
+  direction: rtl;
+}
+
+.ayah {
+  margin: 1.5rem 0;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+  transition: background-color 0.2s ease;
+}
+
+.ayah:hover {
+  background-color: var(--bg-lighter);
+}
+
+.ayah-number {
+  color: var(--ayah-number);
+  font-size: 0.875rem;
+  font-weight: bold;
+  margin: 0 0.5rem;
+}
+
+/* Smooth animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-lighter);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+/* Utility classes */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Touch target sizing for mobile */
+@media (max-width: 640px) {
+  button,
+  a,
+  input[type='button'],
+  input[type='submit'],
+  [role='button'] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+  .quran-text {
+    font-size: 1.25rem;
+    line-height: 2;
+  }
+}
