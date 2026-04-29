@@ -2,9 +2,24 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="قرآن كريم — تلاوات متنوعة، تفسير، ترجمة، تصفح المصحف">
-<title>قرآن كريم</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="description" content="قرآن كريم — تلاوات متنوعة من أفضل القراء، تفسير، ترجمة، تصفح المصحف الشريف">
+<meta name="theme-color" content="#1a472a">
+<meta name="color-scheme" content="light dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="قرآن كريم">
+<meta property="og:title" content="قرآن كريم">
+<meta property="og:description" content="تطبيق ويب لتلاوة وتدبر القرآن الكريم مع تفسير وترجمة">
+<meta property="og:image" content="/logo.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="قرآن كريم">
+<meta name="twitter:description" content="تطبيق ويب لتلاوة وتدبر القرآن الكريم">
+<link rel="canonical" href="/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+<title>قرآن كريم — تطبيق القرآن الشامل</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
@@ -908,6 +923,41 @@ body.read .read-exit { display: flex; }
   opacity: 1; transform: translateX(50%) translateY(0);
 }
 
+/* ════════════════════════════════════════════
+   Animations إضافية للـ Toast و UI
+   ════════════════════════════════════════════ */
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+#toastContainer {
+  pointer-events: auto !important;
+}
+
+#toastContainer > div {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
 /* ═══ Responsive ═══ */
 @media (max-width: 768px) {
   .mushaf { padding: 22px 14px; }
@@ -1301,7 +1351,7 @@ body.read .read-exit { display: flex; }
   </div>
 </div>
 
-<!-- ═══ لوحة اختصارات لوحة المفاتيح ═══ -->
+<!-- ═══ لوحة ا��تصارات لوحة المفاتيح ═══ -->
 <div class="kbd-overlay" id="kbdOverlay"></div>
 <div class="kbd-panel" id="kbdPanel">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">

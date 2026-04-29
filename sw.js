@@ -4,7 +4,9 @@
 // =============================================
 
 // ⚠️ غيّر هذا الرقم في كل مرة تحدّث فيها الملفات
-const CACHE_NAME = 'quran-pwa-v10';
+const CACHE_NAME = 'quran-pwa-v11';
+const API_CACHE_NAME = 'quran-api-v1';
+const AUDIO_CACHE_NAME = 'quran-audio-v1';
 
 const STATIC_ASSETS = [
   './',
@@ -33,9 +35,12 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => {
+      // احتفظ بالكاشات الحالية فقط
+      const validCaches = [CACHE_NAME, API_CACHE_NAME, AUDIO_CACHE_NAME];
+      
       return Promise.all(
         keys
-          .filter(k => k !== CACHE_NAME)
+          .filter(k => !validCaches.includes(k))
           .map(k => {
             console.log('[SW] حذف كاش قديم:', k);
             return caches.delete(k);
@@ -48,19 +53,58 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ── Fetch ──
+// ── Fetch: استراتيجيات مختلفة لأنواع مختلفة ──
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // API calls → network first, no cache
-  if (url.hostname === 'api.alquran.cloud' || url.hostname === 'everyayah.com') {
+  // ── API calls: network first مع caching للقراءة ──
+  if (url.hostname === 'api.alquran.cloud') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(event.request)
+        .then(response => {
+          // احفظ استجابة ناجحة
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(API_CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => {
+          // إذا فشل الاتصال، استخدم الكاش
+          return caches.match(event.request)
+            .then(cached => cached || new Response(JSON.stringify({
+              data: { error: 'تعذر الوصول للبيانات. تحقق من الاتصال.' }
+            }), { status: 503, statusText: 'Service Unavailable' }));
+        })
     );
     return;
   }
 
-  // للملفات المحلية → network first لضمان التحديث
+  // ── ملفات الصوت: cache first مع network fallback ──
+  if (url.hostname === 'everyayah.com') {
+    event.respondWith(
+      caches.match(event.request)
+        .then(cached => {
+          if (cached) return cached;
+          
+          return fetch(event.request, { timeout: 8000 })
+            .then(response => {
+              if (response && response.status === 200) {
+                const clone = response.clone();
+                caches.open(AUDIO_CACHE_NAME).then(cache => cache.put(event.request, clone));
+              }
+              return response;
+            })
+            .catch(err => {
+              console.warn('[SW] فشل تحميل الصوت:', err);
+              return new Response('Error loading audio', { status: 503 });
+            });
+        })
+    );
+    return;
+  }
+
+  // ── الملفات المحلية: network first مع cache fallback ──
   if (url.hostname === self.location.hostname || url.protocol === 'file:') {
     event.respondWith(
       fetch(event.request)
@@ -76,18 +120,22 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // باقي الموارد → cache first
+  // ── الموارد الخارجية: cache first ──
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => caches.match('./index.html'));
-    })
+    caches.match(event.request)
+      .then(cached => {
+        if (cached) return cached;
+        
+        return fetch(event.request)
+          .then(response => {
+            if (response && response.status === 200) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            }
+            return response;
+          })
+          .catch(() => caches.match('./index.html'));
+      })
   );
 });
 

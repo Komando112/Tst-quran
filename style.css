@@ -60,3 +60,403 @@ audio::-webkit-media-controls-time-remaining-display {
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* ════════════════════════════════════════════
+   تحسينات Responsive Design للهواتف الذكية
+   ════════════════════════════════════════════ */
+
+/* ── الهواتف الصغيرة جداً (max-width: 480px) ── */
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  .hdr-in {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .logo-title {
+    font-size: 1.1rem;
+  }
+
+  .logo-sub {
+    font-size: 0.6rem;
+  }
+
+  .hdr-stats {
+    padding: 5px 10px;
+    gap: 10px;
+    font-size: 0.8rem;
+  }
+
+  .stat .num {
+    font-size: 0.85rem;
+  }
+
+  .stat .lbl {
+    font-size: 0.5rem;
+  }
+
+  .sdiv {
+    display: none;
+  }
+
+  .theme-pill,
+  .font-row,
+  .ico-btn {
+    padding: 2px 6px;
+  }
+
+  .f-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .ico-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .nav-in {
+    padding: 0 12px;
+  }
+
+  .tab {
+    padding: 10px 14px;
+    font-size: 0.75rem;
+  }
+
+  .main {
+    padding: 12px 8px;
+  }
+
+  .aod {
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+
+  .aod-text {
+    font-size: 1.3rem;
+    line-height: 2.4;
+  }
+
+  .aod-badge {
+    font-size: 0.7rem;
+    padding: 4px 10px;
+  }
+
+  .aod-btn {
+    padding: 6px 10px;
+    font-size: 0.7rem;
+  }
+
+  .mushaf {
+    padding: 30px 20px;
+    min-height: 500px;
+  }
+
+  .ayahs {
+    font-size: 1.4rem;
+    line-height: 2.4;
+  }
+
+  .an {
+    font-size: 0.85rem;
+  }
+
+  .pg-ctrl {
+    padding: 8px 10px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .pnav {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .pg-grp {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .pg-inp {
+    width: 40px;
+    padding: 2px 4px;
+    font-size: 0.85rem;
+  }
+
+  .popup {
+    width: 95%;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  .pop-txt {
+    font-size: 1.1rem;
+    line-height: 2.2;
+  }
+
+  .bar {
+    padding: 8px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .b-info {
+    min-width: 120px;
+  }
+
+  .b-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  #backToTop {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+    bottom: 80px;
+    left: 12px;
+  }
+}
+
+/* ── الهواتف والأجهزة اللوحية الصغيرة (481px - 768px) ── */
+@media (min-width: 481px) and (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .hdr-in {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .logo-title {
+    font-size: 1.15rem;
+  }
+
+  .hdr-stats {
+    padding: 6px 12px;
+    gap: 12px;
+  }
+
+  .stat .num {
+    font-size: 0.9rem;
+  }
+
+  .nav-in {
+    padding: 0 14px;
+  }
+
+  .tab {
+    padding: 11px 16px;
+    font-size: 0.8rem;
+  }
+
+  .main {
+    padding: 14px 10px;
+  }
+
+  .aod {
+    padding: 18px 22px;
+  }
+
+  .aod-text {
+    font-size: 1.5rem;
+    line-height: 2.6;
+  }
+
+  .mushaf {
+    padding: 35px 30px;
+    min-height: 600px;
+  }
+
+  .ayahs {
+    font-size: 1.5rem;
+    line-height: 2.6;
+  }
+
+  .pg-ctrl {
+    padding: 9px 14px;
+    gap: 8px;
+  }
+
+  .pnav {
+    width: 36px;
+    height: 36px;
+  }
+
+  .popup {
+    width: 90%;
+    max-width: 500px;
+  }
+
+  .pop-txt {
+    font-size: 1.2rem;
+    line-height: 2.4;
+  }
+
+  .bar {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+
+  #backToTop {
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
+    bottom: 85px;
+  }
+}
+
+/* ── الأجهزة اللوحية والشاشات الكبيرة (769px+) ── */
+@media (min-width: 769px) {
+  /* لا تغييرات كبيرة — التصميم الأساسي كافِ */
+  .main {
+    padding: 20px 18px;
+  }
+
+  .mushaf {
+    padding: 50px;
+    min-height: 740px;
+  }
+}
+
+/* ════════════════════════════════════════════
+   تحسينات الـ Landscape وتحسينات خاصة
+   ════════════════════════════════════════════ */
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .hdr-in {
+    padding: 6px 10px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .logo-title {
+    font-size: 0.95rem;
+  }
+
+  .hdr-stats {
+    display: none;
+  }
+
+  .theme-pill {
+    display: none;
+  }
+
+  .aod {
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+
+  .aod-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+  }
+
+  .mushaf {
+    padding: 20px;
+    min-height: auto;
+  }
+
+  .ayahs {
+    font-size: 1.2rem;
+    line-height: 2;
+  }
+
+  .bar {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+}
+
+/* ════════════════════════════════════════════
+   تحسينات الـ Accessibility والتركيز
+   ════════════════════════════════════════════ */
+
+/* تحسين visibility للتركيز على الأجهزة التي تستخدم لوحة المفاتيح */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* تحسين التباين للنصوص */
+@media (prefers-contrast: more) {
+  :root {
+    --txt: #000;
+    --txt2: #333;
+    --muted: #666;
+    --heading: #000;
+  }
+
+  [data-theme="dark"] {
+    --txt: #fff;
+    --txt2: #e8dcc8;
+    --muted: #aaa;
+    --heading: #fff;
+  }
+}
+
+/* احترام تفضيلات المستخدم للحركة */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ════════════════════════════════════════════
+   تحسينات الـ Print
+   ════════════════════════════════════════════ */
+
+@media print {
+  .hdr,
+  .nav,
+  .bar,
+  #backToTop,
+  .pg-ctrl,
+  .aod-acts,
+  .theme-pill,
+  .font-row {
+    display: none;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .mushaf {
+    box-shadow: none;
+    border: none;
+  }
+
+  .ayahs {
+    color: black;
+  }
+}

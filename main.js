@@ -25,28 +25,52 @@ document.addEventListener('DOMContentLoaded', async function() {
     window.__loadQuickAyah = loadQuickAyah;
 });
 
-async function loadSurahs() {
+/**
+ * تحميل قائمة السور — مع إعادة محاولة تلقائية
+ */
+async function loadSurahs(retryCount = 0) {
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000);
+        const timeout = setTimeout(() => controller.abort(), 12000);
+        
         const response = await fetch(QuranConfig.apis.surahs(), { signal: controller.signal });
         clearTimeout(timeout);
+        
         if (!response.ok) throw new Error('HTTP ' + response.status);
+        
         const data = await response.json();
+        
         if (data.data && data.data.length) {
             surahsList = data.data;
             window.surahsList = surahsList;
             populateSurahSelect();
             populateFullSurahSelects();
+            console.log('[loadSurahs] تم تحميل ' + surahsList.length + ' سورة بنجاح');
+            
         } else {
             throw new Error('بيانات السور فارغة');
         }
+        
     } catch (error) {
-        console.error('فشل تحميل السور:', error);
+        console.error('[loadSurahs] خطأ:', error);
+        
+        // محاولة إعادة التحميل تلقائياً
+        if (retryCount < 2) {
+            console.log('[loadSurahs] إعادة المحاولة ' + (retryCount + 1) + '...');
+            setTimeout(() => loadSurahs(retryCount + 1), 2000);
+            return;
+        }
+        
+        // فشل بعد محاولات متعددة
         surahsList = [];
         window.surahsList = [];
+        
         const sel = document.getElementById('surahSelect');
-        if (sel) sel.innerHTML = '<option value="">⚠️ تعذر تحميل السور — تحقق من الاتصال</option>';
+        if (sel) {
+            sel.innerHTML = '<option value="">⚠️ تعذر تحميل السور — تحقق من الاتصال</option>';
+        }
+        
+        showToast('تعذر تحميل قائمة السور', 'error');
     }
 }
 
@@ -529,7 +553,7 @@ function buildFullAudioAyahList(surahData, sn) {
     listEl.innerHTML = html;
 }
 
-/** الانتقال لآية معينة بالنقر على القائمة */
+/** الانتقال لآية معينة ��النقر على القائمة */
 function seekToAyahIdx(index) {
     playFullSurahAyah(index);
 }
@@ -623,71 +647,171 @@ function _doLoadQuickAyah(surah, ayah) {
     setTimeout(() => fetchAyahBySurah(), 150);
 }
 
+/**
+ * جلب الآية من رقم السورة والآية
+ */
 async function fetchAyahBySurah() {
     const sn = parseInt(document.getElementById('surahSelect')?.value);
     const an = parseInt(document.getElementById('ayahInSurah')?.value);
-    if (!sn) { showError(QuranConfig.messages.selectSurah); return; }
+    
+    // التحقق من صحة المدخلات
+    if (!sn) {
+        showError(QuranConfig.messages.selectSurah);
+        return;
+    }
+    
     const surah = surahsList.find(s => s.number === sn);
-    if (!surah) { showError('السورة غير موجودة'); return; }
-    if (!an || an < 1 || an > surah.numberOfAyahs) { showError(QuranConfig.messages.ayahOutOfRange, 'يجب أن يكون بين 1 و ' + surah.numberOfAyahs); return; }
-    currentSurah = sn; currentAyah = an;
-    hideError(); showLoading(true);
+    if (!surah) {
+        showError('السورة غير موجودة');
+        return;
+    }
+    
+    if (!an || an < 1 || an > surah.numberOfAyahs) {
+        showError(QuranConfig.messages.ayahOutOfRange, 'يجب أن يكون بين 1 و ' + surah.numberOfAyahs);
+        return;
+    }
+    
+    currentSurah = sn;
+    currentAyah = an;
+    hideError();
+    showLoading(true);
+    
     try {
         const d = await getAyahBySurahNumber(sn, an);
         displayAyah(d);
-        await Promise.allSettled([loadAudio(d), loadTranslation(d.number), loadTafseer(d.number), loadTajweed(d.number)]);
+        
+        // تحميل جميع البيانات الإضافية بالتوازي
+        await Promise.allSettled([
+            loadAudio(d),
+            loadTranslation(d.number),
+            loadTafseer(d.number),
+            loadTajweed(d.number)
+        ]);
+        
         showAdditionalSections();
-        currentAyahData = d; currentGlobalAyah = d.number;
+        currentAyahData = d;
+        currentGlobalAyah = d.number;
+        showToast('تم تحميل الآية بنجاح', 'success');
+        
     } catch (e) {
-        showError(QuranConfig.messages.error, e.message || 'تحقق من اتصالك بالإنترنت');
-    } finally { showLoading(false); }
+        console.error('[fetchAyahBySurah] خطأ:', e);
+        const errorMsg = e.message || 'تحقق من اتصالك بالإنترنت';
+        showError(QuranConfig.messages.error, errorMsg);
+        showToast('فشل تحميل الآية: ' + errorMsg, 'error');
+        
+    } finally {
+        showLoading(false);
+    }
 }
 
+/**
+ * البحث عن الآية بالرقم العام
+ */
 async function searchByGlobalAyah() {
     const val = document.getElementById('globalAyah')?.value?.trim();
-    const n   = parseInt(val);
-    if (!n || n < 1 || n > QuranConfig.totalAyahs) { showError(QuranConfig.messages.invalidAyah, 'يجب أن يكون بين 1 و ' + QuranConfig.totalAyahs); return; }
-    hideError(); showLoading(true);
+    const n = parseInt(val);
+    
+    // التحقق من صحة الرقم
+    if (!n || n < 1 || n > QuranConfig.totalAyahs) {
+        showError(QuranConfig.messages.invalidAyah, 'يجب أن يكون بين 1 و ' + QuranConfig.totalAyahs);
+        return;
+    }
+    
+    hideError();
+    showLoading(true);
+    
     try {
         const d = await getAyahData(n);
+        
+        // تحديث عناصر الاختيار
         const ss = document.getElementById('surahSelect');
         const ai = document.getElementById('ayahInSurah');
         if (ss) ss.value = d.surah.number;
         if (ai) ai.value = d.numberInSurah;
-        updateSurahInfo(d.surah.number); updateAyahRange(d.surah.number);
+        
+        updateSurahInfo(d.surah.number);
+        updateAyahRange(d.surah.number);
         displayAyah(d);
-        await Promise.allSettled([loadAudio(d), loadTranslation(n), loadTafseer(n), loadTajweed(n)]);
+        
+        // تحميل جميع البيانات الإضافية
+        await Promise.allSettled([
+            loadAudio(d),
+            loadTranslation(n),
+            loadTafseer(n),
+            loadTajweed(n)
+        ]);
+        
         showAdditionalSections();
-        currentAyahData = d; currentSurah = d.surah.number; currentAyah = d.numberInSurah; currentGlobalAyah = n;
+        currentAyahData = d;
+        currentSurah = d.surah.number;
+        currentAyah = d.numberInSurah;
+        currentGlobalAyah = n;
+        showToast('تم البحث بنجاح', 'success');
+        
     } catch (e) {
-        showError(QuranConfig.messages.error, e.message || 'تحقق من اتصالك بالإنترنت');
-    } finally { showLoading(false); }
+        console.error('[searchByGlobalAyah] خطأ:', e);
+        const errorMsg = e.message || 'تحقق من اتصالك بالإنترنت';
+        showError(QuranConfig.messages.error, errorMsg);
+        showToast('فشل البحث: ' + errorMsg, 'error');
+        
+    } finally {
+        showLoading(false);
+    }
 }
 
+/**
+ * جلب بيانات الآية برقمها العام
+ * @param {number} n - رقم الآية
+ */
 async function getAyahData(n) {
     const controller = new AbortController();
-    const timeout    = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    
     try {
-        const res  = await fetch(QuranConfig.apis.ayah(n), { signal: controller.signal });
+        const res = await fetch(QuranConfig.apis.ayah(n), { signal: controller.signal });
         clearTimeout(timeout);
+        
         if (!res.ok) throw new Error('HTTP ' + res.status);
+        
         const data = await res.json();
+        
         if (!data.data) throw new Error('الآية غير موجودة');
+        
         return data.data;
-    } catch (e) { clearTimeout(timeout); throw e; }
+        
+    } catch (e) {
+        clearTimeout(timeout);
+        console.error('[getAyahData] خطأ:', e);
+        throw e;
+    }
 }
 
+/**
+ * جلب بيانات الآية برقم السورة ورقم الآية
+ * @param {number} s - رقم السورة
+ * @param {number} a - رقم الآية في السورة
+ */
 async function getAyahBySurahNumber(s, a) {
     const controller = new AbortController();
-    const timeout    = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    
     try {
-        const res  = await fetch(QuranConfig.apis.ayahBySurah(s, a), { signal: controller.signal });
+        const res = await fetch(QuranConfig.apis.ayahBySurah(s, a), { signal: controller.signal });
         clearTimeout(timeout);
+        
         if (!res.ok) throw new Error('HTTP ' + res.status);
+        
         const data = await res.json();
+        
         if (!data.data) throw new Error('الآية غير موجودة');
+        
         return data.data;
-    } catch (e) { clearTimeout(timeout); throw e; }
+        
+    } catch (e) {
+        clearTimeout(timeout);
+        console.error('[getAyahBySurahNumber] خطأ:', e);
+        throw e;
+    }
 }
 
 function displayAyah(d) {
@@ -819,72 +943,167 @@ async function loadTajweed(globalN) {
     }
 }
 
+/**
+ * تحميل الصوت مع معالجة أخطاء محسّنة
+ * يحاول جميع المصادر المتاحة للقارئ
+ * @param {Object} d - بيانات الآية
+ */
 async function loadAudio(d) {
     const reciter = QuranConfig.reciters[currentReciter];
-    if (!reciter) return;
+    if (!reciter) {
+        console.error('[Audio] القارئ غير موجود:', currentReciter);
+        return;
+    }
+    
     const nameEl = document.getElementById('reciterName');
-    if (nameEl)  nameEl.textContent = 'تلاوة ' + reciter.name;
-    const surah   = String(d.surah.number).padStart(3, '0');
-    const ayah    = String(d.numberInSurah).padStart(3, '0');
+    if (nameEl) nameEl.textContent = 'تلاوة ' + reciter.name;
+    
+    const surah = String(d.surah.number).padStart(3, '0');
+    const ayah = String(d.numberInSurah).padStart(3, '0');
     const display = document.getElementById('audioDisplay');
+    
     if (!display) return;
-    display.innerHTML = '<div style="text-align:center;padding:12px;color:var(--muted);font-size:.85rem;"><i class="fas fa-spinner fa-spin" style="margin-left:6px;"></i>جاري تحميل التلاوة...</div>';
+    
+    display.innerHTML = '<div style="text-align:center;padding:12px;color:var(--muted);font-size:.85rem;"><i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>جاري تحميل التلاوة...</div>';
+    
     let url = null;
+    let attempts = 0;
+    
+    // حاول جميع المصادر المتاحة
     for (const fn of reciter.sources) {
+        attempts++;
         const u = fn(surah, ayah);
         try {
             const ctrl = new AbortController();
-            const t    = setTimeout(() => ctrl.abort(), 5000);
-            const r    = await fetch(u, { method: 'HEAD', signal: ctrl.signal });
+            const t = setTimeout(() => ctrl.abort(), 4000);
+            const r = await fetch(u, { method: 'HEAD', signal: ctrl.signal });
             clearTimeout(t);
-            if (r.ok) { url = u; break; }
-        } catch (e) { continue; }
+            
+            if (r.ok) {
+                url = u;
+                console.log('[Audio] تم تحميل من المصدر ' + attempts);
+                break;
+            }
+        } catch (e) {
+            console.warn('[Audio] فشل المصدر ' + attempts + ':', e.message);
+            continue;
+        }
     }
-    if (!url) url = reciter.sources[0](surah, ayah);
-    display.innerHTML = '<audio id="ayahAudio" controls style="width:100%;border-radius:12px;" preload="metadata"><source src="' + url + '" type="audio/mpeg"></audio>' +
-        '<p style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:8px;">' + reciter.name + ' - ' + reciter.style + '</p>';
+    
+    // استخدم المصدر الأول كـ fallback
+    if (!url) {
+        url = reciter.sources[0](surah, ayah);
+        console.warn('[Audio] استخدام المصدر الافتراضي (قد لا يكون متاحاً)');
+    }
+    
+    // بناء عنصر الصوت مع معالجة أخطاء محسّنة
+    const audioHTML = '<audio id="ayahAudio" controls style="width:100%;border-radius:12px;" preload="metadata" crossOrigin="anonymous">' +
+        '<source src="' + url + '" type="audio/mpeg">' +
+        '</audio>';
+    
+    display.innerHTML = audioHTML +
+        '<p style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:8px;">' + 
+        reciter.name + ' - ' + reciter.style + '</p>';
+    
     audioElement = document.getElementById('ayahAudio');
+    
+    if (audioElement) {
+        // معالجة خطأ التحميل
+        audioElement.addEventListener('error', function(e) {
+            const errorMsg = 'تعذر تحميل التلاوة. تحقق من اتصال الإنترنت أو جرّب قارئاً آخر.';
+            console.error('[Audio] خطأ:', e);
+            display.innerHTML = '<div style="padding:16px;background:#fee;border:1px solid #fcc;border-radius:12px;color:#c33;text-align:center;">' +
+                '<i class="fas fa-exclamation-circle" style="margin-left:6px;"></i>' + errorMsg + '</div>';
+            showToast(errorMsg, 'error');
+        });
+        
+        // معالجة التشغيل الناجح
+        audioElement.addEventListener('play', function() {
+            console.log('[Audio] بدء التشغيل');
+        });
+        
+        // معالجة عدم توفر وسيط (codec)
+        audioElement.addEventListener('canplay', function() {
+            console.log('[Audio] جاهز للتشغيل');
+        });
+    }
 }
 
+/**
+ * تحميل ترجمة الآية
+ * @param {number} n - رقم الآية العام
+ */
 async function loadTranslation(n) {
     const display = document.getElementById('translationDisplay');
     if (!display) return;
+    
     display.innerHTML = '<div style="text-align:center;padding:10px;color:var(--muted);font-size:.82rem;"><i class="fas fa-spinner fa-spin"></i></div>';
+    
     try {
         const controller = new AbortController();
-        const timeout    = setTimeout(() => controller.abort(), 12000);
-        const res        = await fetch(QuranConfig.apis.translation(n, 'en.asad'), { signal: controller.signal });
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        
+        const res = await fetch(QuranConfig.apis.translation(n, 'en.asad'), { signal: controller.signal });
         clearTimeout(timeout);
+        
         if (!res.ok) throw new Error('HTTP ' + res.status);
+        
         const data = await res.json();
+        
         if (data.data && data.data.text) {
-            display.innerHTML = '<div style="background:var(--surface);padding:16px;border-radius:12px;border:1px solid #bfdbfe;"><p style="color:var(--txt);line-height:1.8;text-align:left;" dir="ltr">' + data.data.text + '</p><p style="font-size:0.8rem;color:#60a5fa;margin-top:10px;border-top:1px solid #dbeafe;padding-top:8px;">By Muhammad Asad</p></div>';
+            display.innerHTML = '<div style="background:var(--surface);padding:16px;border-radius:12px;border:1px solid #bfdbfe;">' +
+                '<p style="color:var(--txt);line-height:1.8;text-align:left;font-size:0.95rem;" dir="ltr">' + 
+                data.data.text + 
+                '</p>' +
+                '<p style="font-size:0.8rem;color:#60a5fa;margin-top:10px;border-top:1px solid #dbeafe;padding-top:8px;">By Muhammad Asad</p>' +
+                '</div>';
         } else {
             display.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:10px;text-align:center;">الترجمة غير متوفرة</p>';
         }
+        
     } catch (e) {
-        display.innerHTML = '<p style="color:var(--muted);font-size:.82rem;padding:10px;text-align:center;"><i class="fas fa-wifi" style="margin-left:5px;"></i>تعذر تحميل الترجمة</p>';
+        console.warn('[loadTranslation] خطأ:', e.message);
+        display.innerHTML = '<p style="color:var(--muted);font-size:.82rem;padding:10px;text-align:center;">' +
+            '<i class="fas fa-wifi" style="margin-left:5px;"></i>تعذر تحميل الترجمة</p>';
     }
 }
 
+/**
+ * تحميل التفسير الميسر للآية
+ * @param {number} n - رقم الآية العام
+ */
 async function loadTafseer(n) {
     const display = document.getElementById('tafseerDisplay');
     if (!display) return;
+    
     display.innerHTML = '<div style="text-align:center;padding:10px;color:var(--muted);font-size:.82rem;"><i class="fas fa-spinner fa-spin"></i></div>';
+    
     try {
         const controller = new AbortController();
-        const timeout    = setTimeout(() => controller.abort(), 12000);
-        const res        = await fetch(QuranConfig.apis.tafseer(n, 'ar.muyassar'), { signal: controller.signal });
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        
+        const res = await fetch(QuranConfig.apis.tafseer(n, 'ar.muyassar'), { signal: controller.signal });
         clearTimeout(timeout);
+        
         if (!res.ok) throw new Error('HTTP ' + res.status);
+        
         const data = await res.json();
+        
         if (data.data && data.data.text) {
-            display.innerHTML = '<div style="background:var(--surface);padding:16px;border-radius:12px;border:1px solid #ddd6fe;"><p style="color:var(--txt);line-height:1.8;">' + data.data.text + '</p><p style="font-size:0.8rem;color:#a78bfa;margin-top:10px;border-top:1px solid #ede9fe;padding-top:8px;">التفسير الميسر</p></div>';
+            display.innerHTML = '<div style="background:var(--surface);padding:16px;border-radius:12px;border:1px solid #ddd6fe;">' +
+                '<p style="color:var(--txt);line-height:1.8;font-size:0.95rem;">' + 
+                data.data.text + 
+                '</p>' +
+                '<p style="font-size:0.8rem;color:#a78bfa;margin-top:10px;border-top:1px solid #ede9fe;padding-top:8px;">التفسير الميسر</p>' +
+                '</div>';
         } else {
             display.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:10px;text-align:center;">التفسير غير متوفر</p>';
         }
+        
     } catch (e) {
-        display.innerHTML = '<p style="color:var(--muted);font-size:.82rem;padding:10px;text-align:center;"><i class="fas fa-wifi" style="margin-left:5px;"></i>تعذر تحميل التفسير</p>';
+        console.warn('[loadTafseer] خطأ:', e.message);
+        display.innerHTML = '<p style="color:var(--muted);font-size:.82rem;padding:10px;text-align:center;">' +
+            '<i class="fas fa-wifi" style="margin-left:5px;"></i>تعذر تحميل التفسير</p>';
     }
 }
 
@@ -935,6 +1154,10 @@ function copyAyah() {
     if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('تم نسخ الآية', 'success')).catch(() => showToast('تعذر النسخ', 'error'));
 }
 
+/**
+ * إظهار/إخفاء حالة التحميل
+ * @param {boolean} show - إظهار أم إخفاء
+ */
 function showLoading(show) {
     const ls  = document.getElementById('loadingState');
     const rs  = document.getElementById('resultsSection');
@@ -950,6 +1173,57 @@ function showLoading(show) {
         if (sp)  sp.style.display  = 'none';
         if (btn) btn.disabled      = false;
     }
+}
+
+/**
+ * إظهار رسالة نخبار (Toast Notification)
+ * @param {string} message - الرسالة
+ * @param {string} type - نوع الرسالة (success, error, warning, info)
+ */
+function showToast(message, type = 'info') {
+    if (!message) return;
+    
+    // إنشاء حاوية Toast إذا لم تكن موجودة
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;max-width:400px;' +
+            'font-family:"Tajawal",sans-serif;direction:rtl;text-align:right;';
+        document.body.appendChild(container);
+    }
+    
+    // تحديد الألوان بناءً على النوع
+    const colors = {
+        success: { bg: '#dcfce7', border: '#22c55e', text: '#166534' },
+        error:   { bg: '#fee2e2', border: '#ef4444', text: '#991b1b' },
+        warning: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e' },
+        info:    { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' }
+    };
+    
+    const color = colors[type] || colors.info;
+    
+    // إنشاء عنصر Toast
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background:${color.bg};
+        border-right:3px solid ${color.border};
+        padding:14px 16px;
+        border-radius:8px;
+        margin-bottom:10px;
+        color:${color.text};
+        font-size:0.9rem;
+        animation:slideInRight .3s ease;
+        box-shadow:0 2px 8px rgba(0,0,0,.1);
+    `;
+    toast.textContent = message;
+    container.appendChild(toast);
+    
+    // حذف التوست بعد 4 ثوان
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight .3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
 }
 
 function showError(msg, details) {
