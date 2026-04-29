@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 
-export type NavTab = 'verse' | 'quick' | 'mushaf' | 'read' | 'audio'
+export type NavTab = 'verse' | 'quick' | 'mushaf' | 'read' | 'audio' | 'bookmarks' | 'settings'
 
 interface NavigationProps {
   activeTab?: NavTab
@@ -24,6 +24,8 @@ export function Navigation({ activeTab = 'verse', onTabChange }: NavigationProps
     { id: 'mushaf', label: 'Mushaf', icon: '📚' },
     { id: 'read', label: 'Read', icon: '👁️' },
     { id: 'audio', label: 'Audio', icon: '🔊' },
+    { id: 'bookmarks', label: 'Bookmarks', icon: '⭐' },
+    { id: 'settings', label: 'Settings', icon: '⚙️' },
   ]
 
   return (

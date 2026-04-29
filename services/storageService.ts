@@ -57,4 +57,28 @@ export const storageService = {
       return []
     }
   },
+
+  getBookmarks() {
+    return this.get('bookmarks', [])
+  },
+
+  saveBookmarks(bookmarks: any[]) {
+    this.set('bookmarks', bookmarks)
+  },
+
+  getHistory() {
+    return this.get('history', [])
+  },
+
+  saveHistory(history: any[]) {
+    this.set('history', history)
+  },
+
+  getLastPosition() {
+    return this.get('last_position')
+  },
+
+  saveLastPosition(position: any) {
+    this.set('last_position', position)
+  },
 }

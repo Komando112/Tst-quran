@@ -7,6 +7,8 @@ import { QuickAyah } from '@/components/sections/QuickAyah'
 import { MushafReader } from '@/components/sections/MushafReader'
 import { FullSurahRead } from '@/components/sections/FullSurahRead'
 import { FullSurahAudio } from '@/components/sections/FullSurahAudio'
+import { Bookmarks } from '@/components/sections/Bookmarks'
+import { Settings } from '@/components/sections/Settings'
 
 export function MainContent() {
   const [activeTab, setActiveTab] = useState<NavTab>('verse')
@@ -21,6 +23,8 @@ export function MainContent() {
         {activeTab === 'mushaf' && <MushafReader />}
         {activeTab === 'read' && <FullSurahRead />}
         {activeTab === 'audio' && <FullSurahAudio />}
+        {activeTab === 'bookmarks' && <Bookmarks />}
+        {activeTab === 'settings' && <Settings />}
       </div>
     </div>
   )
