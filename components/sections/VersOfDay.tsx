@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
@@ -28,11 +28,7 @@ export function VersOfDay() {
   const [loading, setLoading] = useState(true)
   const [reciterId] = useLocalStorage<string>('reciterId', DEFAULT_RECITER_ID)
 
-  useEffect(() => {
-    loadVerseOfDay()
-  }, [surahs])
-
-  const loadVerseOfDay = async () => {
+  const loadVerseOfDayCallback = useCallback(async () => {
     setLoading(true)
     try {
       const { surah, ayah } = await quranApi.getVerseOfDay()
@@ -52,7 +48,13 @@ export function VersOfDay() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [error])
+
+  useEffect(() => {
+    loadVerseOfDayCallback()
+  }, [loadVerseOfDayCallback])
+
+
 
   const handlePlay = async () => {
     if (!verse) return
@@ -114,7 +116,7 @@ export function VersOfDay() {
         <CardContent>
           <div className="text-center py-8">
             <p className="text-muted mb-4">Failed to load verse of the day</p>
-            <Button onClick={loadVerseOfDay} variant="primary">
+            <Button onClick={loadVerseOfDayCallback} variant="primary">
               🔄 Retry
             </Button>
           </div>

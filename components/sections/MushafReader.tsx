@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -25,13 +25,7 @@ export function MushafReader() {
   const [searchAyah, setSearchAyah] = useState('')
   const [expandedAyah, setExpandedAyah] = useState<number | null>(null)
 
-  useEffect(() => {
-    if (selectedSurah) {
-      loadSurah(selectedSurah)
-    }
-  }, [selectedSurah])
-
-  const loadSurah = async (surahNumber: number) => {
+  const loadSurah = useCallback(async (surahNumber: number) => {
     setLoading(true)
     try {
       const detail = await quranApi.getSurah(surahNumber)
@@ -41,7 +35,13 @@ export function MushafReader() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [error])
+
+  useEffect(() => {
+    if (selectedSurah) {
+      loadSurah(selectedSurah)
+    }
+  }, [selectedSurah, loadSurah])
 
   const playAyah = (ayahNumber: number) => {
     if (!selectedSurah) return

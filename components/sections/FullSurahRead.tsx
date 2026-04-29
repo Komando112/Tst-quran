@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -23,13 +23,7 @@ export function FullSurahRead() {
   const [surahDetail, setSurahDetail] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (selectedSurah) {
-      loadSurah(selectedSurah)
-    }
-  }, [selectedSurah])
-
-  const loadSurah = async (surahNumber: number) => {
+  const loadSurah = useCallback(async (surahNumber: number) => {
     setLoading(true)
     try {
       const detail = await quranApi.getSurah(surahNumber)
@@ -39,10 +33,16 @@ export function FullSurahRead() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [error])
+
+  useEffect(() => {
+    if (selectedSurah) {
+      loadSurah(selectedSurah)
+    }
+  }, [selectedSurah, loadSurah])
 
   const playFullSurah = () => {
-    if (!selectedSurah) return
+    if (!selectedSurah || !selectedReciter) return
     try {
       const audioUrl = quranApi.getAudioUrl(selectedSurah, selectedReciter)
       audio.play(audioUrl)

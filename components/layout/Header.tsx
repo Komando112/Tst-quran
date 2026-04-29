@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
 import { FONT_SIZES, THEMES } from '@/lib/constants'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { cn } from '@/lib/utils'

@@ -30,33 +30,31 @@ export function QuickAyah() {
 
   // Load ayah text when surah or ayah changes
   useEffect(() => {
-    if (surahs.length === 0 || !selectedSurah) return
+    const load = async () => {
+      if (surahs.length === 0 || !selectedSurah) return
 
-    const surah = surahs.find((s) => s.number === selectedSurah)
-    if (surah) {
-      setMaxAyahs(surah.numberOfAyahs)
-      if (selectedAyah > surah.numberOfAyahs) {
-        setSelectedAyah(surah.numberOfAyahs)
+      const surah = surahs.find((s) => s.number === selectedSurah)
+      if (surah) {
+        setMaxAyahs(surah.numberOfAyahs)
+        const finalAyah = selectedAyah > surah.numberOfAyahs ? surah.numberOfAyahs : selectedAyah
+        setLoading(true)
+        try {
+          const surahDetail = await quranApi.getSurah(selectedSurah)
+          const ayahData = surahDetail.ayahs[finalAyah - 1]
+          if (ayahData) {
+            setAyahText(ayahData.text)
+          }
+        } catch (err) {
+          error('Failed to load ayah')
+        } finally {
+          setLoading(false)
+        }
       }
-      loadAyah(selectedSurah, selectedAyah || 1)
     }
-  }, [selectedSurah, selectedAyah, surahs])
+    load()
+  }, [selectedSurah, selectedAyah, surahs, error])
 
-  const loadAyah = async (surah: number, ayah: number) => {
-    setLoading(true)
-    try {
-      const surahDetail = await quranApi.getSurah(surah)
-      const ayahData = surahDetail.ayahs[ayah - 1]
-      if (ayahData) {
-        setAyahText(ayahData.text)
-      }
-    } catch (err) {
-      error('Failed to load ayah')
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }
+
 
   const handlePlay = () => {
     if (!selectedSurah) return

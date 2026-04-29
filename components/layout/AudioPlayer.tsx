@@ -1,14 +1,12 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { useAudio } from '@/contexts/AudioContext'
 import { formatTime } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
-import { ProgressBar } from '@/components/ui/ProgressBar'
 
 export function AudioPlayer() {
   const audio = useAudio()
-  const [isDragging, setIsDragging] = useState(false)
 
   if (!audio.url) {
     return null
@@ -17,9 +15,6 @@ export function AudioPlayer() {
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     audio.seek(Number(e.target.value))
   }
-
-  const handleDragStart = () => setIsDragging(true)
-  const handleDragEnd = () => setIsDragging(false)
 
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-border-color bg-background shadow-lg z-40 animate-slide-up">
@@ -48,10 +43,6 @@ export function AudioPlayer() {
               max={audio.duration || 0}
               value={audio.currentTime}
               onChange={handleSeek}
-              onMouseDown={handleDragStart}
-              onMouseUp={handleDragEnd}
-              onTouchStart={handleDragStart}
-              onTouchEnd={handleDragEnd}
               className="w-full h-2 rounded-full bg-bg-lighter appearance-none cursor-pointer transition-all
                 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
                 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer
