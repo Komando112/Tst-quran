@@ -181,6 +181,15 @@ body {
   outline-offset: 2px;
 }
 
+/* Gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
 /* Utility classes */
 .sr-only {
   position: absolute;
@@ -198,8 +207,24 @@ body {
   text-wrap: balance;
 }
 
+.text-pretty {
+  text-wrap: pretty;
+}
+
 .backface-hidden {
   backface-visibility: hidden;
+}
+
+/* Touch target sizing for mobile */
+@media (max-width: 640px) {
+  button,
+  a,
+  input[type='button'],
+  input[type='submit'],
+  [role='button'] {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 /* Responsive utilities */

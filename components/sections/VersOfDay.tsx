@@ -86,9 +86,25 @@ export function VersOfDay() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <Spinner size="lg" />
-      </div>
+      <Card hoverable>
+        <CardHeader>
+          <div className="h-6 bg-bg-lighter rounded animate-pulse w-1/3" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-3 p-4 rounded-lg bg-bg-lighter">
+              <div className="h-8 bg-muted/20 rounded animate-pulse w-full" />
+              <div className="h-8 bg-muted/20 rounded animate-pulse w-5/6" />
+              <div className="h-6 bg-muted/20 rounded animate-pulse w-1/4 mt-4" />
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-10 bg-bg-lighter rounded animate-pulse" />
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -96,10 +112,12 @@ export function VersOfDay() {
     return (
       <Card>
         <CardContent>
-          <p className="text-muted text-center py-8">Failed to load verse of the day</p>
-          <Button fullWidth onClick={loadVerseOfDay} variant="primary">
-            Retry
-          </Button>
+          <div className="text-center py-8">
+            <p className="text-muted mb-4">Failed to load verse of the day</p>
+            <Button onClick={loadVerseOfDay} variant="primary">
+              🔄 Retry
+            </Button>
+          </div>
         </CardContent>
       </Card>
     )

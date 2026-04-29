@@ -134,27 +134,36 @@ export function QuickAyah() {
 
         {/* Ayah Display */}
         {loading ? (
-          <div className="flex justify-center py-8">
-            <Spinner />
+          <div className="space-y-4">
+            <div className="space-y-3 p-4 rounded-lg bg-bg-lighter animate-pulse">
+              <div className="h-8 bg-muted/20 rounded w-full" />
+              <div className="h-8 bg-muted/20 rounded w-5/6" />
+              <div className="h-6 bg-muted/20 rounded w-1/4 mt-4" />
+            </div>
+            <div className="flex gap-2">
+              <div className="h-10 bg-bg-lighter rounded flex-1 animate-pulse" />
+              <div className="h-10 bg-bg-lighter rounded flex-1 animate-pulse" />
+            </div>
           </div>
         ) : (
           <>
-            <div className="mb-6 p-4 rounded-lg bg-bg-lighter">
-              <p className="quran-text text-2xl leading-relaxed text-balance">
+            <div className="mb-6 p-4 rounded-lg bg-bg-lighter border border-border-color hover:border-primary/30 transition-colors">
+              <p className="quran-text text-xl md:text-2xl leading-relaxed text-balance mb-4">
                 {ayahText}
               </p>
-              <p className="text-right text-sm text-muted mt-4">
+              <p className="text-right text-sm text-muted font-medium">
                 {selectedSurah}:{selectedAyah}
               </p>
             </div>
 
             {/* Controls */}
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2 md:flex md:gap-3">
               <Button
                 variant="primary"
                 onClick={handlePlay}
                 fullWidth
                 aria-label="Play ayah"
+                className="col-span-1"
               >
                 🔊 Listen
               </Button>
@@ -163,6 +172,7 @@ export function QuickAyah() {
                 onClick={handleCopy}
                 fullWidth
                 aria-label="Copy ayah"
+                className="col-span-1"
               >
                 📋 Copy
               </Button>
