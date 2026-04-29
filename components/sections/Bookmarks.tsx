@@ -2,10 +2,8 @@
 
 import React, { useState } from 'react'
 import { useBookmarks } from '@/contexts/BookmarksContext'
-import { Card, CardContent, CardHeader } from '@/components/ui/Card'
+import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { formatTime } from '@/lib/utils'
 
 export function Bookmarks() {
   const { bookmarks, removeBookmark, updateNotes } = useBookmarks()

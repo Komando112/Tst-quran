@@ -1,10 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
-import { Spinner } from '@/components/ui/Spinner'
 import { useQuran } from '@/contexts/QuranContext'
 import { useAudio } from '@/contexts/AudioContext'
 import { useToast } from '@/hooks/useToast'

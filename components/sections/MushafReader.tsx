@@ -23,7 +23,6 @@ export function MushafReader() {
   const [surahDetail, setSurahDetail] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [searchAyah, setSearchAyah] = useState('')
-  const [expandedAyah, setExpandedAyah] = useState<number | null>(null)
 
   const loadSurah = useCallback(async (surahNumber: number) => {
     setLoading(true)
@@ -44,7 +43,7 @@ export function MushafReader() {
   }, [selectedSurah, loadSurah])
 
   const playAyah = (ayahNumber: number) => {
-    if (!selectedSurah) return
+    if (!selectedSurah || !selectedReciter) return
     try {
       const audioUrl = quranApi.getAudioUrl(selectedSurah, selectedReciter)
       audio.play(audioUrl)
